@@ -199,7 +199,7 @@ export async function getZoneHotspots() {
   const stores = await prisma.store.findMany({
     where: { status: "active" },
     select: {
-      zone,
+      zone: true,
       overallStatus: true,
       priorityScore: true,
     },
