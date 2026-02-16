@@ -3,17 +3,18 @@ import { getStores, getZones } from "./actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Building2, MapPin, User } from "lucide-react";
 import Link from "next/link";
 import { getStoreTypeLabel } from "@/lib/compliance";
+import { Navigation } from "@/components/navigation";
+import { StoreFilters } from "@/components/store-filters";
 
 export default async function StoresPage({
   searchParams,
 }: {
   searchParams: { search?: string; zone?: string; status?: string; type?: string };
 }) {
-  await requireOfficerOrAdmin();
+  const session = await requireOfficerOrAdmin();
 
   const stores = await getStores({
     search: searchParams.search,
@@ -25,6 +26,8 @@ export default async function StoresPage({
   const zones = await getZones();
 
   return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation session={session} />
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">All Stores</h1>
@@ -36,61 +39,7 @@ export default async function StoresPage({
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid gap-4 md:grid-cols-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Search</label>
-              <Input
-                placeholder="Store name or code..."
-                defaultValue={searchParams.search}
-                name="search"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Zone</label>
-              <select
-                className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-                defaultValue={searchParams.zone}
-                name="zone"
-              >
-                <option value="">All Zones</option>
-                {zones.map((zone) => (
-                  <option key={zone.id} value={zone.name}>
-                    {zone.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Status</label>
-              <select
-                className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-                defaultValue={searchParams.status}
-                name="status"
-              >
-                <option value="">All Statuses</option>
-                <option value="GREEN">Compliant</option>
-                <option value="ORANGE">Expiring Soon</option>
-                <option value="RED">Non-Compliant</option>
-                <option value="GREY">N/A</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Store Type</label>
-              <select
-                className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-                defaultValue={searchParams.type}
-                name="type"
-              >
-                <option value="">All Types</option>
-                <option value="FB">Food & Beverage</option>
-                <option value="RETAIL">Retail</option>
-                <option value="LUXURY">Luxury</option>
-                <option value="SERVICES">Services</option>
-                <option value="ATTRACTION">Attraction</option>
-                <option value="POPUP">Pop-up</option>
-              </select>
-            </div>
-          </div>
+          <StoreFilters zones={zones} />
         </CardContent>
       </Card>
 
@@ -160,6 +109,7 @@ export default async function StoresPage({
           </CardContent>
         </Card>
       )}
+    </div>
     </div>
   );
 }

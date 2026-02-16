@@ -1,4 +1,5 @@
 import { requireOfficerOrAdmin } from "@/lib/auth-helpers";
+import { auth } from "@/lib/auth";
 import {
   getDashboardStats,
   getPriorityStores,
@@ -12,9 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { AlertCircle, TrendingUp, TrendingDown, Users, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { getStoreTypeLabel } from "@/lib/compliance";
+import { Navigation } from "@/components/navigation";
 
 export default async function DashboardPage() {
-  await requireOfficerOrAdmin();
+  const session = await requireOfficerOrAdmin();
 
   const [stats, priorityStores, zoneHotspots, categoryBreakdown, officerWorkload] =
     await Promise.all([
@@ -26,7 +28,9 @@ export default async function DashboardPage() {
     ]);
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="min-h-screen bg-gray-50">
+      <Navigation session={session} />
+      <div className="p-8 space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
@@ -329,6 +333,7 @@ export default async function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
