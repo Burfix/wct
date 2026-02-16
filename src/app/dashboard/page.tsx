@@ -1,5 +1,4 @@
 import { requireOfficerOrAdmin } from "@/lib/auth-helpers";
-import { auth } from "@/lib/auth";
 import {
   getDashboardStats,
   getPriorityStores,
@@ -10,21 +9,24 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge, StatusDot } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, TrendingUp, TrendingDown, Users, AlertTriangle } from "lucide-react";
+import { AlertCircle, Users, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { getStoreTypeLabel } from "@/lib/compliance";
 import { Navigation } from "@/components/navigation";
+import { RiskRadar } from "@/components/risk-radar";
+import { getRiskRadarTop3 } from "@/lib/risk-radar";
 
 export default async function DashboardPage() {
   const session = await requireOfficerOrAdmin();
 
-  const [stats, priorityStores, zoneHotspots, categoryBreakdown, officerWorkload] =
+  const [stats, priorityStores, zoneHotspots, categoryBreakdown, officerWorkload, riskRadarZones] =
     await Promise.all([
       getDashboardStats(),
       getPriorityStores(20),
       getZoneHotspots(),
       getCategoryBreakdown(),
       getOfficerWorkload(),
+      getRiskRadarTop3(7),
     ]);
 
   return (
@@ -100,10 +102,13 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      {/* Risk Radar - Executive Module */}
+      <RiskRadar zones={riskRadarZones} />
+
       {/* Priority Queue */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Today's Focus — High Priority Stores</CardTitle>
+          <CardTitle className="text-xl">Today&apos;s Focus — High Priority Stores</CardTitle>
           <p className="text-sm text-muted-foreground">
             Ranked by risk score with actionable insights
           </p>
@@ -239,12 +244,12 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>Category Risk Breakdown</CardTitle>
             <p className="text-sm text-muted-foreground">
-              What's driving non-compliance
+              What&apos;s driving non-compliance
             </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {categoryBreakdown.map((cat: any) => (
+              {categoryBreakdown.map((cat: { category: string; red: number; orange: number; green: number; grey: number }) => (
                 <div key={cat.category} className="space-y-1">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">
