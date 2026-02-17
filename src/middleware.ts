@@ -1,13 +1,11 @@
-import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Middleware for route protection and RBAC enforcement
- * Ensures all protected routes require authentication and proper authorization
+ * Lightweight middleware for route protection
+ * Auth verification happens in layout/page components
  */
-export async function middleware(request: NextRequest) {
-  const session = await auth();
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
@@ -18,33 +16,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Require authentication for all other routes
-  if (!session?.user) {
+  // Check for session cookie (basic check, full auth happens in components)
+  const sessionCookie = request.cookies.get('authjs.session-token') || 
+                       request.cookies.get('__Secure-authjs.session-token');
+
+  if (!sessionCookie && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
-  }
-
-  // Role-based access control
-  const adminOnlyRoutes = ['/admin', '/api/admin'];
-  const isAdminRoute = adminOnlyRoutes.some((route) => pathname.startsWith(route));
-
-  if (isAdminRoute && session.user.role !== 'ADMIN') {
-    return NextResponse.json(
-      { error: 'Unauthorized - Admin access required' },
-      { status: 403 }
-    );
-  }
-
-  // Manager+ routes (MANAGER and ADMIN)
-  const managerRoutes = ['/stores/new', '/stores/edit', '/api/stores/create', '/api/stores/update'];
-  const isManagerRoute = managerRoutes.some((route) => pathname.startsWith(route));
-
-  if (isManagerRoute && !['MANAGER', 'ADMIN'].includes(session.user.role || '')) {
-    return NextResponse.json(
-      { error: 'Unauthorized - Manager access required' },
-      { status: 403 }
-    );
   }
 
   return NextResponse.next();
