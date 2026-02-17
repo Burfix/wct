@@ -195,8 +195,17 @@ async function SelectAuditForm() {
     orderBy: { storeCode: 'asc' },
   });
 
-  console.log('SelectAuditForm - Templates:', templates.map(t => ({ id: t.id, name: t.name })));
+  console.log('SelectAuditForm - Templates count:', templates.length);
+  console.log('SelectAuditForm - Templates:', JSON.stringify(templates.map(t => ({ id: t.id, name: t.name }))));
   console.log('SelectAuditForm - Stores count:', stores.length);
+  console.log('SelectAuditForm - First 3 stores:', JSON.stringify(stores.slice(0, 3)));
+
+  if (templates.length === 0) {
+    console.error('NO TEMPLATES FOUND!');
+  }
+  if (stores.length === 0) {
+    console.error('NO STORES FOUND!');
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
