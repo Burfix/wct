@@ -26,8 +26,6 @@ export async function POST(req: NextRequest) {
       where: { email: 'manager@vawaterfront.co.za' },
       data: {
         password: hashedPassword,
-        failedLoginAttempts: 0,
-        lastFailedLoginAt: null,
       },
     });
 
@@ -36,8 +34,6 @@ export async function POST(req: NextRequest) {
       where: { email: 'officer@vawaterfront.co.za' },
       data: {
         password: hashedPassword,
-        failedLoginAttempts: 0,
-        lastFailedLoginAt: null,
       },
     });
 
