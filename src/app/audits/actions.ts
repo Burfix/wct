@@ -91,17 +91,22 @@ export async function createAudit(input: CreateAuditInput) {
     },
   });
 
-  // Log activity
-  await prisma.activityLog.create({
-    data: {
-      storeId: input.storeId,
-      userId: session.user.id!,
-      action: 'AUDIT_CREATED',
-      entity: 'Audit',
-      entityId: audit.id,
-      details: JSON.stringify({ templateId: input.templateId }),
-    },
-  });
+  // Log activity (only if activityLog table exists)
+  try {
+    await prisma.activityLog.create({
+      data: {
+        storeId: input.storeId,
+        userId: session.user.id!,
+        action: 'AUDIT_CREATED',
+        entity: 'Audit',
+        entityId: audit.id,
+        details: JSON.stringify({ templateId: input.templateId }),
+      },
+    });
+  } catch (error) {
+    console.warn('Failed to create activity log:', error);
+    // Continue anyway - activity log is not critical
+  }
 
   revalidatePath('/audits');
   revalidatePath(`/stores/${input.storeId}`);
