@@ -85,6 +85,8 @@ export default async function NewAuditPage({
     return <SelectAuditForm />;
   }
 
+  console.log('Creating audit with:', { storeId, templateId });
+
   // Get store
   const store = await prisma.store.findUnique({
     where: { id: storeId },
@@ -97,7 +99,19 @@ export default async function NewAuditPage({
   });
 
   if (!store) {
-    return <div>Store not found</div>;
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h1 className="text-xl font-bold text-red-900 mb-2">Store Not Found</h1>
+            <p className="text-red-700">Store ID: {storeId}</p>
+            <a href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
+              ← Back to selection
+            </a>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Get template
@@ -115,8 +129,22 @@ export default async function NewAuditPage({
     },
   });
 
+  console.log('Template lookup:', { templateId, found: template?.id, name: template?.name });
+
   if (!template) {
-    return <div>Template not found</div>;
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h1 className="text-xl font-bold text-red-900 mb-2">Template Not Found</h1>
+            <p className="text-red-700">Template ID: {templateId}</p>
+            <a href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
+              ← Back to selection
+            </a>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Create audit draft
@@ -166,6 +194,9 @@ async function SelectAuditForm() {
     },
     orderBy: { storeCode: 'asc' },
   });
+
+  console.log('SelectAuditForm - Templates:', templates.map(t => ({ id: t.id, name: t.name })));
+  console.log('SelectAuditForm - Stores count:', stores.length);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
