@@ -43,10 +43,15 @@ async function getAudits() {
 
 function getStatusColor(status: string) {
   switch (status) {
-    case "COMPLETED":
+    case "VERIFIED":
       return "bg-green-100 text-green-800";
-    case "IN_PROGRESS":
+    case "COMPLETE":
+    case "SUBMITTED":
       return "bg-blue-100 text-blue-800";
+    case "DRAFT":
+      return "bg-yellow-100 text-yellow-800";
+    case "REJECTED":
+      return "bg-red-100 text-red-800";
     case "SCHEDULED":
       return "bg-yellow-100 text-yellow-800";
     case "CANCELLED":
@@ -72,10 +77,12 @@ export default async function AuditsPage() {
               Schedule and manage compliance audits across all stores
             </p>
           </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Schedule Audit
-          </Button>
+          <Link href="/audits/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              New Audit
+            </Button>
+          </Link>
         </div>
 
         {/* Summary Stats */}
@@ -94,8 +101,8 @@ export default async function AuditsPage() {
               <CardTitle className="text-sm font-medium">Completed</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {audits.filter((a) => a.status === "COMPLETED").length}
+              <div className="text-2xl font-bold">
+                {audits.filter((a) => a.status === "VERIFIED" || a.status === "COMPLETE").length}
               </div>
             </CardContent>
           </Card>
@@ -104,18 +111,20 @@ export default async function AuditsPage() {
               <CardTitle className="text-sm font-medium">In Progress</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {audits.filter((a) => a.status === "IN_PROGRESS").length}
+              <div className="text-2xl font-bold">
+                {audits.filter((a) => a.status === "DRAFT" || a.status === "SUBMITTED").length}
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
+              <CardTitle className="text-sm font-medium">Avg Score</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {audits.filter((a) => a.status === "IN_PROGRESS").length}
+              <div className="text-2xl font-bold">
+                {audits.filter(a => a.overallScore).length > 0
+                  ? Math.round(audits.filter(a => a.overallScore).reduce((sum, a) => sum + (a.overallScore || 0), 0) / audits.filter(a => a.overallScore).length)
+                  : 0}%
               </div>
             </CardContent>
           </Card>
@@ -168,15 +177,18 @@ export default async function AuditsPage() {
                           )}
                         </div>
 
-                        {audit.summary && (
+                        {audit.generalComments && (
                           <p className="text-sm text-muted-foreground line-clamp-2">
-                            {audit.summary}
+                            {audit.generalComments}
                           </p>
                         )}
 
                         <div className="flex gap-4 text-xs text-muted-foreground">
                           <span>{audit._count.responses} responses</span>
                           <span>{audit._count.comments} comments</span>
+                          {audit.overallScore && (
+                            <span className="font-medium">Score: {audit.overallScore.toFixed(1)}%</span>
+                          )}
                         </div>
                       </div>
                     </div>

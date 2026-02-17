@@ -4,6 +4,17 @@ Production-ready compliance management system tailored for the V&A Waterfront, t
 
 ## Features
 
+### Restaurant Audit Module ⭐ NEW
+- **Mobile-Optimized Audit Forms**: Touch-friendly interface for on-site inspections
+- **Digital Signature Capture**: Officer and manager signatures with timestamps
+- **Cloud Photo Upload**: Evidence photos with uploadthing (4MB each, up to 10 per issue)
+- **Intelligent Scoring Engine**: Weighted section scores, critical failure detection
+- **Auto-Generated Actions**: Corrective actions with severity-based due dates
+- **Manager Verification**: Approve/reject workflow with signature requirements
+- **PDF Export**: Professional audit reports with watermarks and embedded evidence
+- **Geo-Location Proof**: GPS verification of on-site inspections
+- **Tenant Acknowledgement**: Digital sign-off by store representatives
+
 ### Manager Dashboard (Executive Focus View)
 - **Portfolio KPIs**: Total stores, compliance status breakdown, expiring items, overdue actions
 - **Priority Queue**: Ranked list of high-priority stores with risk scores and actionable insights

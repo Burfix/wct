@@ -252,18 +252,18 @@ export default async function StoreDetailPage({
                       Conducted by {audit.conductedBy.name || audit.conductedBy.email} •{" "}
                       {formatDate(audit.auditDate)}
                     </div>
-                    {audit.overallRating && (
+                    {audit.overallScore && (
                       <Badge
                         variant={
-                          audit.overallRating === "Pass"
+                          audit.overallScore >= 80
                             ? "success"
-                            : audit.overallRating === "Fail"
-                            ? "error"
-                            : "warning"
+                            : audit.overallScore >= 60
+                            ? "warning"
+                            : "error"
                         }
                         className="mt-2"
                       >
-                        {audit.overallRating}
+                        {audit.overallScore.toFixed(1)}%
                       </Badge>
                     )}
                   </div>

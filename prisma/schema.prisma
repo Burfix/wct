@@ -27,18 +27,18 @@ model User {
   accounts              Account[]
   sessions              Session[]
   assignedStores        StoreAssignment[]
-  createdStores         Store[]               @relation("CreatedBy")
-  updatedStores         Store[]               @relation("UpdatedBy")
-  createdEvidences      Evidence[]            @relation("EvidenceCreatedBy")
-  verifiedEvidences     Evidence[]            @relation("EvidenceVerifiedBy")
-  createdActions        CorrectiveAction[]    @relation("ActionCreatedBy")
-  assignedActions       CorrectiveAction[]    @relation("ActionAssignedTo")
-  createdAudits         Audit[]               @relation("AuditCreatedBy")
+  createdStores         Store[]            @relation("CreatedBy")
+  updatedStores         Store[]            @relation("UpdatedBy")
+  createdEvidences      Evidence[]         @relation("EvidenceCreatedBy")
+  verifiedEvidences     Evidence[]         @relation("EvidenceVerifiedBy")
+  createdActions        CorrectiveAction[] @relation("ActionCreatedBy")
+  assignedActions       CorrectiveAction[] @relation("ActionAssignedTo")
+  createdAudits         Audit[]            @relation("AuditCreatedBy")
   auditComments         AuditComment[]
   notifications         Notification[]
   activityLogs          ActivityLog[]
-  escalations           Escalation[]          @relation("EscalationCreatedBy")
-  escalationsAssignedTo Escalation[]          @relation("EscalationAssignedTo")
+  escalations           Escalation[]       @relation("EscalationCreatedBy")
+  escalationsAssignedTo Escalation[]       @relation("EscalationAssignedTo")
 
   @@map("users")
 }
@@ -93,32 +93,32 @@ model VerificationToken {
 // ============================================================================
 
 model Store {
-  id               String    @id @default(cuid())
-  storeCode        String    @unique
-  name             String
-  tradeName        String?
-  zone             String
-  floor            String?
-  precinct         String?
-  storeType        StoreType
-  highFootTraffic  Boolean   @default(false)
-  tradingHours     String?
-  tenantContact    String?
-  tenantEmail      String?
-  tenantPhone      String?
-  status           String    @default("active") // active, closed, under-renovation
-  overallStatus    ComplianceStatus @default(GREY)
-  priorityScore    Int       @default(0)
-  lastAuditDate    DateTime?
-  nextAuditDue     DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  createdById      String?
-  updatedById      String?
+  id              String           @id @default(cuid())
+  storeCode       String           @unique
+  name            String
+  tradeName       String?
+  zone            String
+  floor           String?
+  precinct        String?
+  storeType       StoreType
+  highFootTraffic Boolean          @default(false)
+  tradingHours    String?
+  tenantContact   String?
+  tenantEmail     String?
+  tenantPhone     String?
+  status          String           @default("active") // active, closed, under-renovation
+  overallStatus   ComplianceStatus @default(GREY)
+  priorityScore   Int              @default(0)
+  lastAuditDate   DateTime?
+  nextAuditDue    DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  createdById     String?
+  updatedById     String?
 
   // Relations
-  createdBy         User?                 @relation("CreatedBy", fields: [createdById], references: [id])
-  updatedBy         User?                 @relation("UpdatedBy", fields: [updatedById], references: [id])
+  createdBy         User?              @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy         User?              @relation("UpdatedBy", fields: [updatedById], references: [id])
   assignments       StoreAssignment[]
   complianceItems   ComplianceItem[]
   evidences         Evidence[]
@@ -135,7 +135,7 @@ model Store {
 }
 
 enum StoreType {
-  FB              // Food & Beverage
+  FB // Food & Beverage
   RETAIL
   SERVICES
   LUXURY
@@ -144,19 +144,19 @@ enum StoreType {
 }
 
 enum ComplianceStatus {
-  GREEN   // Compliant
-  ORANGE  // Expiring soon
-  RED     // Expired/Missing/Non-compliant
-  GREY    // Not applicable
+  GREEN // Compliant
+  ORANGE // Expiring soon
+  RED // Expired/Missing/Non-compliant
+  GREY // Not applicable
 }
 
 model StoreAssignment {
-  id        String   @id @default(cuid())
-  storeId   String
-  userId    String
+  id         String   @id @default(cuid())
+  storeId    String
+  userId     String
   assignedAt DateTime @default(now())
   assignedBy String?
-  active    Boolean  @default(true)
+  active     Boolean  @default(true)
 
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -171,17 +171,17 @@ model StoreAssignment {
 // ============================================================================
 
 model ComplianceItem {
-  id               String           @id @default(cuid())
-  storeId          String
-  category         ComplianceCategory
-  subCategory      String?
-  status           ComplianceStatus @default(GREY)
-  required         Boolean          @default(true)
-  expiryDate       DateTime?
-  lastVerifiedDate DateTime?
+  id                String             @id @default(cuid())
+  storeId           String
+  category          ComplianceCategory
+  subCategory       String?
+  status            ComplianceStatus   @default(GREY)
+  required          Boolean            @default(true)
+  expiryDate        DateTime?
+  lastVerifiedDate  DateTime?
   verificationNotes String?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   store     Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
   evidences Evidence[]
@@ -204,24 +204,24 @@ enum ComplianceCategory {
 }
 
 model Evidence {
-  id                String             @id @default(cuid())
-  complianceItemId  String
-  storeId           String
-  title             String
-  description       String?
-  fileUrl           String?
-  fileName          String?
-  fileType          String?
-  fileSize          Int?
-  issueDate         DateTime?
-  expiryDate        DateTime?
+  id                 String             @id @default(cuid())
+  complianceItemId   String
+  storeId            String
+  title              String
+  description        String?
+  fileUrl            String?
+  fileName           String?
+  fileType           String?
+  fileSize           Int?
+  issueDate          DateTime?
+  expiryDate         DateTime?
   verificationStatus VerificationStatus @default(PENDING)
-  verifiedById      String?
-  verifiedAt        DateTime?
-  rejectionReason   String?
-  createdById       String
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  verifiedById       String?
+  verifiedAt         DateTime?
+  rejectionReason    String?
+  createdById        String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   complianceItem ComplianceItem @relation(fields: [complianceItemId], references: [id], onDelete: Cascade)
   store          Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -241,86 +241,202 @@ enum VerificationStatus {
 }
 
 // ============================================================================
-// AUDITS & INSPECTIONS
+// AUDITS & INSPECTIONS (Restaurant Audit Module)
 // ============================================================================
 
 model AuditTemplate {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
   description String?
   storeTypes  StoreType[]
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  version     String      @default("1.0")
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  checklist AuditChecklistItem[]
-  audits    Audit[]
+  sections AuditSection[]
+  audits   Audit[]
 
   @@map("audit_templates")
 }
 
-model AuditChecklistItem {
+model AuditSection {
   id          String  @id @default(cuid())
   templateId  String
-  category    String
-  item        String
+  name        String // e.g., "Fire, Emergency & Safety Management"
   description String?
-  critical    Boolean @default(false)
+  weight      Int     @default(1) // For weighted scoring
   order       Int     @default(0)
 
-  template       AuditTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  auditResponses AuditResponse[]
+  template  AuditTemplate   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  questions AuditQuestion[]
 
   @@index([templateId])
-  @@map("audit_checklist_items")
+  @@map("audit_sections")
+}
+
+model AuditQuestion {
+  id          String  @id @default(cuid())
+  sectionId   String
+  question    String // e.g., "Fire extinguishers accessible, serviced, compliant?"
+  description String? // Additional context
+  critical    Boolean @default(false) // If true, failure triggers "Restaurant Critical" flag
+  order       Int     @default(0)
+
+  section   AuditSection    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  responses AuditResponse[]
+
+  @@index([sectionId])
+  @@map("audit_questions")
 }
 
 model Audit {
-  id          String      @id @default(cuid())
-  storeId     String
-  templateId  String
-  conductedById String
-  auditDate   DateTime
-  status      AuditStatus @default(IN_PROGRESS)
-  overallRating String?   // Pass, Fail, Needs Improvement
-  summary     String?
-  completedAt DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                  String      @id @default(cuid())
+  storeId             String
+  templateId          String
+  conductedById       String
+  auditDate           DateTime
+  status              AuditStatus @default(DRAFT)
+  overallScore        Float? // Overall compliance % (0-100)
+  sectionScores       Json? // { "sectionId": { "score": 85.5, "yes": 5, "no": 1, "na": 2 } }
+  generalComments     String?
+  tenantAcknowledged  Boolean     @default(false)
+  tenantName          String?
+  tenantRole          String?
+  tenantContact       String?
+  officerSignatureUrl String?
+  officerSignedAt     DateTime?
+  managerSignatureUrl String?
+  managerSignedAt     DateTime?
+  managerVerifiedById String?
+  managerVerifiedAt   DateTime?
+  rejectionReason     String?
+  geoProofCaptured    Boolean     @default(false)
+  geoLat              Float?
+  geoLng              Float?
+  geoAccuracyMeters   Float?
+  geoStatus           GeoStatus?
+  zoneMatch           Boolean?
+  lastSyncedAt        DateTime? // For offline mode
+  completedAt         DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 
-  store       Store                @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  template    AuditTemplate        @relation(fields: [templateId], references: [id])
-  conductedBy User                 @relation("AuditCreatedBy", fields: [conductedById], references: [id])
-  responses   AuditResponse[]
-  actions     CorrectiveAction[]
-  comments    AuditComment[]
+  store           Store                 @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  template        AuditTemplate         @relation(fields: [templateId], references: [id])
+  conductedBy     User                  @relation("AuditCreatedBy", fields: [conductedById], references: [id])
+  responses       AuditResponse[]
+  actions         CorrectiveAction[]
+  comments        AuditComment[]
+  signatures      AuditSignature[]
+  acknowledgement AuditAcknowledgement?
 
   @@index([storeId])
   @@index([status])
   @@index([auditDate])
+  @@index([overallScore])
   @@map("audits")
 }
 
 enum AuditStatus {
-  IN_PROGRESS
-  COMPLETED
-  ARCHIVED
+  DRAFT // Officer is still filling it out
+  SUBMITTED // Officer submitted (locked)
+  MEDIA_UPLOADING // Photos still uploading
+  COMPLETE // All data + media uploaded
+  VERIFIED // Manager verified and signed
+  REJECTED // Manager rejected, needs revision
+  ARCHIVED // Old/historical
+}
+
+enum GeoStatus {
+  CAPTURED
+  DENIED
+  UNAVAILABLE
 }
 
 model AuditResponse {
-  id              String  @id @default(cuid())
-  auditId         String
-  checklistItemId String
-  compliant       Boolean
-  finding         String?
-  photoUrls       String[]
-  requiresAction  Boolean  @default(false)
+  id                   String          @id @default(cuid())
+  auditId              String
+  questionId           String
+  result               AuditResult // YES, NO, NA
+  notes                String?
+  severity             ActionSeverity? // Required if result = NO
+  createdActionId      String? // Auto-created corrective action
+  sectionScoreSnapshot Float? // Section score at time of response
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
 
-  audit         Audit              @relation(fields: [auditId], references: [id], onDelete: Cascade)
-  checklistItem AuditChecklistItem @relation(fields: [checklistItemId], references: [id])
+  audit    Audit         @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  question AuditQuestion @relation(fields: [questionId], references: [id])
+  photos   AuditPhoto[]
 
-  @@unique([auditId, checklistItemId])
+  @@unique([auditId, questionId])
+  @@index([auditId])
+  @@index([result])
   @@map("audit_responses")
+}
+
+enum AuditResult {
+  YES // Compliant
+  NO // Non-compliant (requires note + photo + severity)
+  NA // Not applicable
+}
+
+model AuditPhoto {
+  id                String     @id @default(cuid())
+  responseId        String
+  auditId           String
+  photoUrl          String
+  fileName          String?
+  fileSize          Int?
+  uploadedById      String
+  uploadedAt        DateTime   @default(now())
+  geoLat            Float?
+  geoLng            Float?
+  geoAccuracyMeters Float?
+  geoStatus         GeoStatus?
+  deviceInfo        String? // User agent or device type
+
+  response AuditResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  @@index([responseId])
+  @@index([auditId])
+  @@map("audit_photos")
+}
+
+model AuditSignature {
+  id           String        @id @default(cuid())
+  auditId      String
+  signedById   String
+  role         SignatureRole
+  signatureUrl String
+  ipAddress    String?
+  deviceInfo   String?
+  createdAt    DateTime      @default(now())
+
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])
+  @@map("audit_signatures")
+}
+
+enum SignatureRole {
+  OFFICER
+  MANAGER
+}
+
+model AuditAcknowledgement {
+  id           String   @id @default(cuid())
+  auditId      String   @unique
+  acknowledged Boolean  @default(false)
+  name         String?
+  role         String? // e.g., "Manager on Duty", "Head Chef"
+  contact      String? // Phone or email
+  createdAt    DateTime @default(now())
+
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@map("audit_acknowledgements")
 }
 
 model AuditComment {
@@ -333,7 +449,23 @@ model AuditComment {
   audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id])
 
+  @@index([auditId])
   @@map("audit_comments")
+}
+
+// QR Code for each store (links to latest audit summary)
+model StoreQRCode {
+  id             String    @id @default(cuid())
+  storeId        String    @unique
+  qrImageUrl     String?
+  publicToken    String?   @unique // Signed token for public access
+  tokenExpiresAt DateTime?
+  generatedAt    DateTime  @default(now())
+  lastAccessedAt DateTime?
+  accessCount    Int       @default(0)
+
+  @@index([publicToken])
+  @@map("store_qr_codes")
 }
 
 // ============================================================================
@@ -341,22 +473,22 @@ model AuditComment {
 // ============================================================================
 
 model CorrectiveAction {
-  id          String         @id @default(cuid())
-  storeId     String
-  auditId     String?
-  title       String
-  description String
-  severity    ActionSeverity
-  category    ComplianceCategory?
-  status      ActionStatus   @default(OPEN)
-  dueDate     DateTime
-  completedAt DateTime?
-  createdById String
+  id           String              @id @default(cuid())
+  storeId      String
+  auditId      String?
+  title        String
+  description  String
+  severity     ActionSeverity
+  category     ComplianceCategory?
+  status       ActionStatus        @default(OPEN)
+  dueDate      DateTime
+  completedAt  DateTime?
+  createdById  String
   assignedToId String?
-  photoUrls   String[]
-  resolution  String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  photoUrls    String[]
+  resolution   String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
 
   store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
   audit      Audit?      @relation(fields: [auditId], references: [id])
@@ -387,17 +519,17 @@ enum ActionStatus {
 }
 
 model Escalation {
-  id          String   @id @default(cuid())
-  actionId    String   @unique
-  storeId     String
-  reason      String
-  createdById String
+  id           String    @id @default(cuid())
+  actionId     String    @unique
+  storeId      String
+  reason       String
+  createdById  String
   assignedToId String?
-  status      String   @default("open") // open, acknowledged, resolved
-  resolvedAt  DateTime?
-  resolution  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status       String    @default("open") // open, acknowledged, resolved
+  resolvedAt   DateTime?
+  resolution   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   action     CorrectiveAction @relation(fields: [actionId], references: [id], onDelete: Cascade)
   store      Store            @relation(fields: [storeId], references: [id])
@@ -447,7 +579,7 @@ model PeakPeriod {
   name      String
   startDate DateTime
   endDate   DateTime
-  tag       String   // Holiday, Cruise Week, Event Weekend
+  tag       String // Holiday, Cruise Week, Event Weekend
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -461,11 +593,11 @@ model PeakPeriod {
 // ============================================================================
 
 model SystemSettings {
-  id                      String   @id @default(cuid())
-  key                     String   @unique
-  value                   String
-  description             String?
-  updatedAt               DateTime @updatedAt
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
 
   @@map("system_settings")
 }
@@ -490,9 +622,9 @@ model ActivityLog {
   storeId   String?
   userId    String?
   action    String
-  entity    String   // Store, Evidence, Action, Audit, etc.
+  entity    String // Store, Evidence, Action, Audit, etc.
   entityId  String
-  details   String?  // JSON string
+  details   String? // JSON string
   createdAt DateTime @default(now())
 
   store Store? @relation(fields: [storeId], references: [id], onDelete: Cascade)

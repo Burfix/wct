@@ -75,10 +75,15 @@ async function main() {
   await prisma.escalation.deleteMany();
   await prisma.correctiveAction.deleteMany();
   await prisma.auditComment.deleteMany();
+  await prisma.auditSignature.deleteMany();
+  await prisma.auditAcknowledgement.deleteMany();
+  await prisma.auditPhoto.deleteMany();
   await prisma.auditResponse.deleteMany();
   await prisma.audit.deleteMany();
-  await prisma.auditChecklistItem.deleteMany();
+  await prisma.auditQuestion.deleteMany();
+  await prisma.auditSection.deleteMany();
   await prisma.auditTemplate.deleteMany();
+  await prisma.storeQRCode.deleteMany();
   await prisma.evidence.deleteMany();
   await prisma.complianceItem.deleteMany();
   await prisma.storeAssignment.deleteMany();
@@ -204,38 +209,7 @@ async function main() {
     ],
   });
 
-  // Create Audit Templates
-  console.log("📋 Creating audit templates...");
-  const retailTemplate = await prisma.auditTemplate.create({
-    data: {
-      name: "Standard Retail Safety Audit",
-      description: "General safety inspection for retail stores",
-      storeTypes: ["RETAIL", "LUXURY", "SERVICES"],
-    },
-  });
-
-  const fbTemplate = await prisma.auditTemplate.create({
-    data: {
-      name: "Restaurant Fire & Extraction Audit",
-      description: "Comprehensive safety inspection for food & beverage outlets",
-      storeTypes: ["FB"],
-    },
-  });
-
-  // Create checklist items
-  await prisma.auditChecklistItem.createMany({
-    data: [
-      { templateId: retailTemplate.id, category: "Fire Safety", item: "Fire extinguishers accessible and serviced", critical: true, order: 1 },
-      { templateId: retailTemplate.id, category: "Fire Safety", item: "Emergency exit signs visible and illuminated", critical: true, order: 2 },
-      { templateId: retailTemplate.id, category: "Fire Safety", item: "Fire evacuation plan displayed", critical: false, order: 3 },
-      { templateId: retailTemplate.id, category: "First Aid", item: "First aid kit available and stocked", critical: false, order: 4 },
-      { templateId: retailTemplate.id, category: "First Aid", item: "Trained first aider on staff", critical: false, order: 5 },
-      { templateId: fbTemplate.id, category: "Fire Safety", item: "Fire suppression system inspected", critical: true, order: 1 },
-      { templateId: fbTemplate.id, category: "Fire Safety", item: "Kitchen extraction system certified", critical: true, order: 2 },
-      { templateId: fbTemplate.id, category: "Fire Safety", item: "Gas safety certificate valid", critical: true, order: 3 },
-      { templateId: fbTemplate.id, category: "Fire Safety", item: "Fire blankets available in kitchen", critical: true, order: 4 },
-    ],
-  });
+  // Note: Audit Templates are seeded by separate script: prisma/seed-restaurant-audit.ts
 
   // Create 400 Stores
   console.log("🏪 Creating 400 stores...");
