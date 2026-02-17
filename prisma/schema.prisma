@@ -24,8 +24,8 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // Security fields
-  failedLoginAttempts Int       @default(0)
+  // Security fields (optional - may not exist in all databases)
+  failedLoginAttempts Int?      @default(0)
   lastFailedLoginAt   DateTime?
 
   // Relations
