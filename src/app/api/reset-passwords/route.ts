@@ -6,7 +6,7 @@ import { hash } from 'bcryptjs';
  * Public endpoint to reset demo passwords
  * This allows anyone to reset the demo account passwords
  */
-export async function POST(req: NextRequest) {
+export async function GET() {
   try {
     console.log('🔐 Resetting demo user passwords...');
 
