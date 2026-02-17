@@ -6,6 +6,7 @@ import {
   getCategoryBreakdown,
   getOfficerWorkload,
 } from "./actions";
+import { getExecutiveRiskRadar, getExecutiveSummary } from "./actions-executive";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge, StatusDot } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +16,20 @@ import { getStoreTypeLabel } from "@/lib/compliance";
 import { Navigation } from "@/components/navigation";
 import { RiskRadar } from "@/components/risk-radar";
 import { getRiskRadarTop3 } from "@/lib/risk-radar";
+import { ExecutiveRiskRadar } from "@/components/dashboard/executive-risk-radar";
 
 export default async function DashboardPage() {
   const session = await requireOfficerOrAdmin();
 
-  const [stats, priorityStores, zoneHotspots, categoryBreakdown, officerWorkload, riskRadarZones] =
+  const [
+    stats, 
+    priorityStores, 
+    zoneHotspots, 
+    categoryBreakdown, 
+    officerWorkload, 
+    riskRadarZones,
+    executiveRiskRadar,
+  ] =
     await Promise.all([
       getDashboardStats(),
       getPriorityStores(20),
@@ -27,6 +37,7 @@ export default async function DashboardPage() {
       getCategoryBreakdown(),
       getOfficerWorkload(),
       getRiskRadarTop3(7),
+      getExecutiveRiskRadar(),
     ]);
 
   return (
@@ -102,7 +113,10 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Risk Radar - Executive Module */}
+      {/* Executive Risk Radar - Week 2 Addition */}
+      <ExecutiveRiskRadar zones={executiveRiskRadar} />
+
+      {/* Risk Radar - Original Module */}
       <RiskRadar zones={riskRadarZones} />
 
       {/* Priority Queue */}
@@ -249,7 +263,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {categoryBreakdown.map((cat: { category: string; red: number; orange: number; green: number; grey: number }) => (
+              {categoryBreakdown.map((cat: { category: string; red: number; orange: number }) => (
                 <div key={cat.category} className="space-y-1">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">

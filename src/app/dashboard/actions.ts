@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db";
 import { calculateStoreOverallStatus, calculatePriorityScore, DEFAULT_EXPIRY_THRESHOLD_DAYS } from "@/lib/compliance";
 import type { StoreData } from "@/lib/compliance";
-import { ComplianceStatus, ActionStatus } from "@prisma/client";
+import { ComplianceStatus, ActionStatus, StoreType } from "@prisma/client";
 
 export async function getDashboardStats() {
   const now = new Date();
@@ -93,221 +93,211 @@ export async function getDashboardStats() {
 }
 
 export async function getPriorityStores(limit: number = 20) {
-  const stores = await prisma.store.findMany({
-    where: { status: "active" },
-    include: {
-      complianceItems: {
-        include: {
-          evidences: {
-            orderBy: { createdAt: "desc" },
-            take: 1,
-          },
-        },
-      },
-      correctiveActions: {
-        where: {
-          status: { in: ["OPEN", "IN_PROGRESS"] },
-        },
-        select: {
-          severity: true,
-          status: true,
-          dueDate: true,
-        },
-      },
-      assignments: {
-        where: { active: true },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  const now = new Date();
+  const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  const peakPeriods = await prisma.peakPeriod.findMany({
+  // Optimized: Use SQL aggregations instead of loading all stores
+  const topStores = await prisma.$queryRaw<Array<{
+    id: string;
+    storeCode: string;
+    name: string;
+    zone: string;
+    floor: string | null;
+    storeType: StoreType;
+    overallStatus: ComplianceStatus;
+    highFootTraffic: boolean;
+    redCount: bigint;
+    orangeCount: bigint;
+    criticalOverdueCount: bigint;
+    overdueCount: bigint;
+    openActionsCount: bigint;
+    expiringIn7DaysCount: bigint;
+  }>>`
+    SELECT 
+      s.id,
+      s."storeCode",
+      s.name,
+      s.zone,
+      s.floor,
+      s."storeType",
+      s."overallStatus",
+      s."highFootTraffic",
+      COUNT(CASE WHEN ci.status = 'RED' THEN 1 END) as "redCount",
+      COUNT(CASE WHEN ci.status = 'ORANGE' THEN 1 END) as "orangeCount",
+      COUNT(CASE WHEN ca.severity = 'CRITICAL' AND ca."dueDate" < ${now} AND ca.status IN ('OPEN', 'IN_PROGRESS') THEN 1 END) as "criticalOverdueCount",
+      COUNT(CASE WHEN ca."dueDate" < ${now} AND ca.status IN ('OPEN', 'IN_PROGRESS') THEN 1 END) as "overdueCount",
+      COUNT(CASE WHEN ca.status IN ('OPEN', 'IN_PROGRESS') THEN 1 END) as "openActionsCount",
+      COUNT(CASE WHEN ci."expiryDate" BETWEEN ${now} AND ${sevenDaysFromNow} AND ci.status = 'ORANGE' THEN 1 END) as "expiringIn7DaysCount"
+    FROM stores s
+    LEFT JOIN "ComplianceItem" ci ON ci."storeId" = s.id
+    LEFT JOIN "CorrectiveAction" ca ON ca."storeId" = s.id
+    WHERE s.status = 'active'
+    GROUP BY s.id, s."storeCode", s.name, s.zone, s.floor, s."storeType", s."overallStatus", s."highFootTraffic"
+    ORDER BY 
+      COUNT(CASE WHEN ci.status = 'RED' THEN 1 END) DESC,
+      COUNT(CASE WHEN ca.severity = 'CRITICAL' AND ca."dueDate" < ${now} THEN 1 END) DESC,
+      COUNT(CASE WHEN ci."expiryDate" BETWEEN ${now} AND ${sevenDaysFromNow} THEN 1 END) DESC,
+      s."highFootTraffic" DESC
+    LIMIT ${limit}
+  `;
+
+  // Get assigned officers for top stores
+  const storeIds = topStores.map(s => s.id);
+  const assignments = await prisma.storeAssignment.findMany({
     where: {
+      storeId: { in: storeIds },
       active: true,
-      startDate: { lte: new Date() },
-      endDate: { gte: new Date() },
     },
-    select: {
-      startDate: true,
-      endDate: true,
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
     },
   });
 
-  const context = {
-    peakPeriods,
-    currentDate: new Date(),
-    expiryThresholds: {
-      orange: DEFAULT_EXPIRY_THRESHOLD_DAYS,
-    },
-  };
+  const assignmentMap = new Map(
+    assignments.map(a => [a.storeId, a.user])
+  );
 
-  const storesWithPriority = stores.map((store) => {
-    const complianceItemsData = store.complianceItems.map((item) => {
-      const latestEvidence = item.evidences[0];
-      return {
-        category: item.category,
-        required: item.required,
-        hasEvidence: !!latestEvidence,
-        expiryDate: item.expiryDate,
-        verificationStatus: latestEvidence?.verificationStatus || null,
-      };
-    });
-
-    const storeData: StoreData = {
-      id: store.id,
-      storeCode: store.storeCode,
-      name: store.name,
-      zone: store.zone,
-      floor: store.floor,
-      storeType: store.storeType,
-      highFootTraffic: store.highFootTraffic,
-      complianceItems: complianceItemsData,
-      overdueActions: store.correctiveActions.map((a) => ({
-        severity: a.severity,
-        status: a.status as ActionStatus,
-        dueDate: a.dueDate,
-      })),
-    };
-
-    const priority = calculatePriorityScore(storeData, context);
-    const overallStatus = calculateStoreOverallStatus(complianceItemsData);
-
-    return {
-      ...store,
-      priorityScore: priority.score,
-      priorityReasons: priority.reasons,
-      calculatedStatus: overallStatus,
-      assignedOfficer: store.assignments[0]?.user || null,
-    };
-  });
-
-  // Sort by priority score descending
-  storesWithPriority.sort((a, b) => b.priorityScore - a.priorityScore);
-
-  return storesWithPriority.slice(0, limit);
+  return topStores.map(store => ({
+    id: store.id,
+    storeCode: store.storeCode,
+    name: store.name,
+    zone: store.zone,
+    floor: store.floor,
+    storeType: store.storeType,
+    overallStatus: store.overallStatus,
+    highFootTraffic: store.highFootTraffic,
+    priorityScore: 
+      Number(store.redCount) * 10 + 
+      Number(store.criticalOverdueCount) * 8 +
+      Number(store.expiringIn7DaysCount) * 5 +
+      Number(store.orangeCount) * 3 +
+      (store.highFootTraffic ? 5 : 0),
+    priorityReasons: [
+      ...(Number(store.redCount) > 0 ? [`${store.redCount} RED compliance items`] : []),
+      ...(Number(store.criticalOverdueCount) > 0 ? [`${store.criticalOverdueCount} critical overdue actions`] : []),
+      ...(Number(store.expiringIn7DaysCount) > 0 ? [`${store.expiringIn7DaysCount} items expiring in 7 days`] : []),
+      ...(Number(store.orangeCount) > 0 ? [`${store.orangeCount} ORANGE items`] : []),
+      ...(store.highFootTraffic ? ['High foot traffic'] : []),
+    ],
+    calculatedStatus: store.overallStatus,
+    assignedOfficer: assignmentMap.get(store.id) || null,
+    correctiveActions: { length: Number(store.openActionsCount) },
+  }));
 }
 
 export async function getZoneHotspots() {
-  const stores = await prisma.store.findMany({
-    where: { status: "active" },
-    select: {
-      zone: true,
-      overallStatus: true,
-      priorityScore: true,
-    },
-  });
+  // Optimized: Use SQL aggregation for zone statistics
+  const zoneStats = await prisma.$queryRaw<Array<{
+    zone: string;
+    total: bigint;
+    green: bigint;
+    orange: bigint;
+    red: bigint;
+    grey: bigint;
+  }>>`
+    SELECT 
+      zone,
+      COUNT(*) as total,
+      COUNT(CASE WHEN "overallStatus" = 'GREEN' THEN 1 END) as green,
+      COUNT(CASE WHEN "overallStatus" = 'ORANGE' THEN 1 END) as orange,
+      COUNT(CASE WHEN "overallStatus" = 'RED' THEN 1 END) as red,
+      COUNT(CASE WHEN "overallStatus" = 'GREY' THEN 1 END) as grey
+    FROM stores
+    WHERE status = 'active'
+    GROUP BY zone
+    ORDER BY 
+      COUNT(CASE WHEN "overallStatus" = 'RED' THEN 1 END) DESC,
+      COUNT(CASE WHEN "overallStatus" = 'ORANGE' THEN 1 END) DESC
+  `;
 
-  const zoneStats = stores.reduce((acc, store) => {
-    if (!acc[store.zone]) {
-      acc[store.zone] = {
-        zone: store.zone,
-        total: 0,
-        green: 0,
-        orange: 0,
-        red: 0,
-        grey: 0,
-        avgPriorityScore: 0,
-        totalPriorityScore: 0,
-      };
-    }
-
-    acc[store.zone].total++;
-    acc[store.zone][store.overallStatus.toLowerCase() as 'green' | 'orange' | 'red' | 'grey']++;
-    acc[store.zone].totalPriorityScore += store.priorityScore;
-
-    return acc;
-  }, {} as Record<string, any>);
-
-  // Calculate averages and risk scores
-  const hotspots = Object.values(zoneStats).map((zone: any) => ({
-    ...zone,
-    avgPriorityScore: Math.round(zone.totalPriorityScore / zone.total),
-    riskScore: zone.red * 10 + zone.orange * 5,
+  return zoneStats.map(zone => ({
+    zone: zone.zone,
+    total: Number(zone.total),
+    green: Number(zone.green),
+    orange: Number(zone.orange),
+    red: Number(zone.red),
+    grey: Number(zone.grey),
+    riskScore: Number(zone.red) * 10 + Number(zone.orange) * 5,
+    avgPriorityScore: Number(zone.red) > 0 ? Math.round((Number(zone.red) * 10 + Number(zone.orange) * 5) / Number(zone.total) * 10) : 0,
   }));
-
-  // Sort by risk score descending
-  hotspots.sort((a, b) => b.riskScore - a.riskScore);
-
-  return hotspots;
 }
 
 export async function getCategoryBreakdown() {
-  const items = await prisma.complianceItem.findMany({
-    where: {
-      store: { status: "active" },
-      status: { in: ["RED", "ORANGE"] },
-    },
-    select: {
-      category: true,
-      status: true,
-    },
-  });
+  // Optimized: Use SQL aggregation for category statistics
+  const breakdown = await prisma.$queryRaw<Array<{
+    category: string;
+    red: bigint;
+    orange: bigint;
+  }>>`
+    SELECT 
+      category,
+      COUNT(CASE WHEN status = 'RED' THEN 1 END) as red,
+      COUNT(CASE WHEN status = 'ORANGE' THEN 1 END) as orange
+    FROM "ComplianceItem" ci
+    INNER JOIN stores s ON ci."storeId" = s.id
+    WHERE s.status = 'active' AND ci.status IN ('RED', 'ORANGE')
+    GROUP BY category
+    ORDER BY 
+      COUNT(CASE WHEN status = 'RED' THEN 1 END) DESC,
+      COUNT(CASE WHEN status = 'ORANGE' THEN 1 END) DESC
+  `;
 
-  const breakdown = items.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = { category: item.category, red: 0, orange: 0 };
-    }
-    if (item.status === "RED") acc[item.category].red++;
-    if (item.status === "ORANGE") acc[item.category].orange++;
-    return acc;
-  }, {} as Record<string, any>);
-
-  return Object.values(breakdown);
+  return breakdown.map(item => ({
+    category: item.category,
+    red: Number(item.red),
+    orange: Number(item.orange),
+  }));
 }
 
 export async function getOfficerWorkload() {
-  const officers = await prisma.user.findMany({
-    where: {
-      role: { in: ["OFFICER", "ADMIN"] },
-      active: true,
-    },
-    include: {
-      assignedStores: {
-        where: { active: true },
-        include: {
-          store: {
-            select: {
-              id: true,
-              overallStatus: true,
-            },
-          },
-        },
-      },
-      assignedActions: {
-        where: {
-          status: { in: ["OPEN", "IN_PROGRESS"] },
-        },
-      },
-    },
-  });
+  // Optimized: Use SQL aggregation for officer workload
+  const now = new Date();
+  
+  const workload = await prisma.$queryRaw<Array<{
+    id: string;
+    name: string | null;
+    email: string;
+    role: string;
+    assignedStores: bigint;
+    redStores: bigint;
+    openActions: bigint;
+    overdueActions: bigint;
+  }>>`
+    SELECT 
+      u.id,
+      u.name,
+      u.email,
+      u.role,
+      COUNT(DISTINCT sa.id) as "assignedStores",
+      COUNT(DISTINCT CASE WHEN s."overallStatus" = 'RED' THEN sa.id END) as "redStores",
+      COUNT(DISTINCT ca.id) as "openActions",
+      COUNT(DISTINCT CASE WHEN ca."dueDate" < ${now} THEN ca.id END) as "overdueActions"
+    FROM users u
+    LEFT JOIN "StoreAssignment" sa ON sa."userId" = u.id AND sa.active = true
+    LEFT JOIN stores s ON s.id = sa."storeId" AND s.status = 'active'
+    LEFT JOIN "CorrectiveAction" ca ON ca."assignedToId" = u.id AND ca.status IN ('OPEN', 'IN_PROGRESS')
+    WHERE u.role IN ('OFFICER', 'ADMIN') AND u.active = true
+    GROUP BY u.id, u.name, u.email, u.role
+    ORDER BY "redStores" DESC, "overdueActions" DESC
+  `;
 
-  return officers.map((officer) => {
-    const redStores = officer.assignedStores.filter(
-      (a) => a.store.overallStatus === "RED"
-    ).length;
-    const overdueActions = officer.assignedActions.filter(
-      (a) => a.dueDate < new Date()
-    ).length;
-
-    return {
-      id: officer.id,
-      name: officer.name || officer.email,
-      email: officer.email,
-      role: officer.role,
-      assignedStores: officer.assignedStores.length,
-      redStores,
-      openActions: officer.assignedActions.length,
-      overdueActions,
-    };
-  });
+  return workload.map(officer => ({
+    id: officer.id,
+    name: officer.name || officer.email,
+    email: officer.email,
+    role: officer.role,
+    assignedStores: Number(officer.assignedStores),
+    redStores: Number(officer.redStores),
+    openActions: Number(officer.openActions),
+    overdueActions: Number(officer.overdueActions),
+  }));
 }
 
 export async function getComplianceTrend(days: number = 30) {

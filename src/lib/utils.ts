@@ -1,13 +1,13 @@
-import { type ClassValue, clsx } from "clsx"
+import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatDate(date: Date | string | null): string {
-  if (!date) return "N/A";
-  const d = new Date(date);
+export function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return "—";
+  const d = typeof date === "string" ? new Date(date) : date;
   return d.toLocaleDateString("en-ZA", {
     year: "numeric",
     month: "short",
@@ -15,36 +15,25 @@ export function formatDate(date: Date | string | null): string {
   });
 }
 
-export function formatDateTime(date: Date | string | null): string {
-  if (!date) return "N/A";
-  const d = new Date(date);
-  return d.toLocaleString("en-ZA", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export function formatRelativeTime(date: Date | string): string {
-  const d = new Date(date);
+  const d = typeof date === "string" ? new Date(date) : date;
   const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
+  const diffMs = d.getTime() - now.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
-  if (diffSec < 60) return "just now";
-  if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? "s" : ""} ago`;
-  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? "s" : ""} ago`;
-  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? "s" : ""} ago`;
-  
-  return formatDate(d);
-}
+  if (diffDays === 0) {
+    if (diffHours === 0) return "Today";
+    if (diffHours < 0) return "Overdue";
+    return `In ${diffHours}h`;
+  }
 
-export function truncate(str: string, length: number = 50): string {
-  if (str.length <= length) return str;
-  return str.substring(0, length) + "...";
+  if (diffDays > 0) {
+    if (diffDays === 1) return "Tomorrow";
+    if (diffDays <= 7) return `In ${diffDays} days`;
+    return formatDate(d);
+  }
+
+  if (diffDays === -1) return "Yesterday";
+  return `${Math.abs(diffDays)} days ago`;
 }
