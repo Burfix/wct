@@ -92,13 +92,10 @@ export default function LoginPage() {
           <div className="mt-6 text-center text-xs text-muted-foreground">
             <p>Demo credentials:</p>
             <p className="mt-1">
-              <strong>Manager:</strong> manager@vawaterfront.co.za / password12345
+              <strong>Manager:</strong> manager@vawaterfront.co.za / password123
             </p>
             <p>
-              <strong>Officer:</strong> officer@vawaterfront.co.za / password12345
-            </p>
-            <p className="mt-3 text-gray-500">
-              Note: Passwords must be at least 12 characters
+              <strong>Officer:</strong> officer@vawaterfront.co.za / password123
             </p>
           </div>
         </CardContent>
