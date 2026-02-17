@@ -208,13 +208,49 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ Audit template created successfully');
 
+    // Create test stores
+    console.log('🏪 Creating test stores...');
+    
+    const stores = await prisma.store.createMany({
+      data: [
+        {
+          storeCode: 'FB001',
+          name: "Mitchell's Scottish Ale House",
+          tradeName: "Mitchell's",
+          zone: 'Victoria Wharf - Upper Level',
+          storeType: 'FB',
+          status: 'active',
+        },
+        {
+          storeCode: 'FB002',
+          name: "Ocean Basket",
+          tradeName: "Ocean Basket V&A",
+          zone: 'Victoria Wharf - Ground Level',
+          storeType: 'FB',
+          status: 'active',
+        },
+        {
+          storeCode: 'FB003',
+          name: "The Hussar Grill",
+          tradeName: "Hussar Grill",
+          zone: 'Silo District',
+          storeType: 'FB',
+          status: 'active',
+        },
+      ],
+      skipDuplicates: true,
+    });
+
+    console.log(`✅ Created ${stores.count} test stores`);
+
     return NextResponse.json({
       success: true,
-      message: 'Audit template seeded successfully',
+      message: 'Database seeded successfully',
       template: {
         id: template.id,
         name: template.name,
       },
+      storesCreated: stores.count,
     });
   } catch (error) {
     console.error('Seed error:', error);
