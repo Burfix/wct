@@ -95,7 +95,7 @@ export default function LoginPage() {
               <strong>Manager:</strong> manager@vawaterfront.co.za / password123
             </p>
             <p>
-              <strong>Officer:</strong> officer@vawaterfront.co.za / password123
+              <strong>Officer:</strong> officer1@vawaterfront.co.za / password123
             </p>
           </div>
         </CardContent>
