@@ -481,7 +481,7 @@ export async function getAuditTemplates() {
 export async function verifyAudit(auditId: string, managerSignatureUrl: string) {
   const session = await auth();
 
-  if (!session?.user || session.user.role !== 'ADMIN') {
+  if (!session?.user || !['MANAGER', 'ADMIN'].includes(session.user.role || '')) {
     throw new Error('Only managers can verify audits');
   }
 
@@ -539,7 +539,7 @@ export async function verifyAudit(auditId: string, managerSignatureUrl: string) 
 export async function rejectAudit(auditId: string, reason: string) {
   const session = await auth();
 
-  if (!session?.user || session.user.role !== 'ADMIN') {
+  if (!session?.user || !['MANAGER', 'ADMIN'].includes(session.user.role || '')) {
     throw new Error('Only managers can reject audits');
   }
 

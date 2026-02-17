@@ -7,7 +7,7 @@ import type { User, UserRole } from "@prisma/client";
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(12, 'Password must be at least 12 characters'),
 });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -33,6 +33,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           if (!user || !user.password) {
+            // Implement rate limiting by tracking failed attempts
+            // In production, use Redis or similar for distributed rate limiting
             return null;
           }
 
@@ -40,11 +42,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             throw new Error("Account is inactive");
           }
 
+          // Check if account is locked (more than 5 failed attempts in last 15 minutes)
+          if (user.failedLoginAttempts >= 5) {
+            const lockoutTime = user.lastFailedLoginAt ? new Date(user.lastFailedLoginAt.getTime() + 15 * 60 * 1000) : new Date();
+            if (new Date() < lockoutTime) {
+              throw new Error("Account temporarily locked due to too many failed login attempts. Please try again in 15 minutes.");
+            } else {
+              // Reset failed attempts after lockout period
+              await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  failedLoginAttempts: 0,
+                  lastFailedLoginAt: null,
+                },
+              });
+            }
+          }
+
           const isPasswordValid = await compare(password, user.password);
 
           if (!isPasswordValid) {
+            // Increment failed login attempts
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                failedLoginAttempts: (user.failedLoginAttempts || 0) + 1,
+                lastFailedLoginAt: new Date(),
+              },
+            });
             return null;
           }
+
+          // Reset failed attempts on successful login
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: 0,
+              lastFailedLoginAt: null,
+            },
+          });
 
           return {
             id: user.id,
@@ -55,6 +91,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         } catch (error) {
           console.error("Auth error:", error);
+          if (error instanceof Error && error.message.includes("locked")) {
+            throw error; // Re-throw lockout errors so they reach the UI
+          }
           return null;
         }
       },
