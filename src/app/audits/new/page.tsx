@@ -120,7 +120,27 @@ export default async function NewAuditPage({
   }
 
   // Create audit draft
-  const audit = await createAudit({ storeId, templateId });
+  let audit;
+  try {
+    audit = await createAudit({ storeId, templateId });
+  } catch (error) {
+    console.error('Failed to create audit:', error);
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h1 className="text-xl font-bold text-red-900 mb-2">Failed to Create Audit</h1>
+            <p className="text-red-700">
+              {error instanceof Error ? error.message : 'Unknown error occurred'}
+            </p>
+            <a href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
+              ← Try again
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuditForm
