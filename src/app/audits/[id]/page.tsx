@@ -106,7 +106,7 @@ export default async function AuditViewPage({
               </div>
             </div>
 
-            <DownloadPDFButton audit={audit} />
+            <DownloadPDFButton auditId={audit.id} />
           </div>
 
           {/* Overall Score */}

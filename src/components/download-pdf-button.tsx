@@ -3,22 +3,32 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
-import { generateAuditPDF } from '@/lib/pdf-generator';
 
 interface DownloadPDFButtonProps {
-  audit: unknown;
+  auditId: string;
 }
 
-export default function DownloadPDFButton({ audit }: DownloadPDFButtonProps) {
+export default function DownloadPDFButton({ auditId }: DownloadPDFButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
     setLoading(true);
     try {
-      await generateAuditPDF({
-        audit,
-        watermark: 'Mall Risk Compliance Platform – Confidential',
-      });
+      const response = await fetch(`/api/audits/${auditId}/pdf`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit-${auditId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
