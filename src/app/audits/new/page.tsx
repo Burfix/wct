@@ -213,6 +213,13 @@ async function SelectAuditForm() {
         <div className="bg-white rounded-lg border shadow-sm p-6">
           <h1 className="text-2xl font-bold mb-6">Start New Audit</h1>
 
+          {/* Debug info */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+            <p className="font-semibold text-blue-900">Debug Info:</p>
+            <p className="text-blue-700">Templates: {templates.length}</p>
+            <p className="text-blue-700">Stores: {stores.length}</p>
+          </div>
+
           <form method="GET" className="space-y-6">
             <div>
               <label htmlFor="storeId" className="block text-sm font-medium text-gray-700 mb-2">
