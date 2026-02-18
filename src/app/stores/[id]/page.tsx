@@ -4,21 +4,14 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Building2, 
-  MapPin, 
-  User, 
-  Phone, 
-  Mail, 
-  Calendar,
+import {
+  MapPin,
+  User,
+  Phone,
   AlertTriangle,
-  CheckCircle2,
-  Clock,
-  FileText
 } from "lucide-react";
 import { getStoreTypeLabel, categoryLabel, getExpiryStatusText } from "@/lib/compliance";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
-import Link from "next/link";
 
 export default async function StoreDetailPage({
   params,

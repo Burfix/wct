@@ -1,9 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { calculateStoreOverallStatus, calculatePriorityScore, DEFAULT_EXPIRY_THRESHOLD_DAYS } from "@/lib/compliance";
-import type { StoreData } from "@/lib/compliance";
-import { ComplianceStatus, ActionStatus, StoreType } from "@prisma/client";
+import { ComplianceStatus, StoreType } from "@prisma/client";
 
 export async function getDashboardStats() {
   const now = new Date();
@@ -95,7 +93,6 @@ export async function getDashboardStats() {
 export async function getPriorityStores(limit: number = 20) {
   const now = new Date();
   const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
   // Optimized: Use SQL aggregations instead of loading all stores
   const topStores = await prisma.$queryRaw<Array<{

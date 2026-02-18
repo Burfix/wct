@@ -6,7 +6,7 @@ import {
   getCategoryBreakdown,
   getOfficerWorkload,
 } from "./actions";
-import { getExecutiveRiskRadar, getExecutiveSummary } from "./actions-executive";
+import { getExecutiveRiskRadar } from "./actions-executive";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge, StatusDot } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";

@@ -10,7 +10,7 @@ seed()
     try {
       const { prisma } = await import('../src/lib/db');
       await prisma.$disconnect();
-    } catch (e) {
+    } catch (_e) {
       // ignore
     }
   });

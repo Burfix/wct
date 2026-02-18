@@ -195,7 +195,7 @@ export async function GET(
           // Photos
           if (response.photos && response.photos.length > 0) {
             doc.text(`   Photos: ${response.photos.length} attached`, { indent: 20 });
-            response.photos.forEach((photo, pIdx) => {
+            response.photos.forEach((photo, _pIdx) => {
               doc.fontSize(8).text(`     - ${photo.photoUrl}`, { indent: 30 });
             });
             doc.fontSize(10);

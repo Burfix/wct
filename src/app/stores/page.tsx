@@ -3,7 +3,7 @@ import { getStores, getZones } from "./actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Building2, MapPin, User } from "lucide-react";
+import { MapPin, User } from "lucide-react";
 import Link from "next/link";
 import { getStoreTypeLabel } from "@/lib/compliance";
 import { Navigation } from "@/components/navigation";

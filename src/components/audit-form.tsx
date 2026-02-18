@@ -15,20 +15,18 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Camera, Check, X, Minus, ChevronDown, ChevronRight, Save, Send, MapPin, Pencil, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Check, X, Minus, ChevronDown, ChevronRight, Save, Send, MapPin, Pencil, Loader2 } from 'lucide-react';
 import {
   calculateAuditScore,
   formatScore,
   getRiskColor,
-  getScoreBadgeColor,
   type AuditResponseData,
 } from '@/lib/audit-scoring';
 import { ActionSeverity, AuditResult } from '@prisma/client';
 import { useUploadThing } from '@/lib/uploadthing';
 import SignaturePad from './signature-pad';
 import TenantAcknowledgement from './tenant-acknowledgement';
-import dynamic from 'next/dynamic';
 
 interface AuditQuestion {
   id: string;
@@ -82,7 +80,6 @@ export default function AuditForm({ store, template, auditId, existingResponses 
   const [responses, setResponses] = useState<Record<string, AuditResponse>>(existingResponses);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set([template.sections[0]?.id]));
   const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [generalComments, setGeneralComments] = useState('');
   const [tenantAcknowledged, setTenantAcknowledged] = useState(false);
   const [tenantName, setTenantName] = useState('');
@@ -105,6 +102,34 @@ export default function AuditForm({ store, template, auditId, existingResponses 
   // Calculate live score
   const scoreData = calculateLiveScore();
 
+  const handleAutoSave = useCallback(async () => {
+    if (Object.keys(responses).length === 0) return;
+
+    setIsSaving(true);
+    try {
+      // Save each response
+      for (const [questionId, response] of Object.entries(responses)) {
+        if (response.result) {
+          await fetch('/api/audits/save-response', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              auditId,
+              questionId,
+              result: response.result,
+              notes: response.notes,
+              severity: response.severity,
+            }),
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [responses, auditId]);
+
   // Auto-save every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
@@ -112,7 +137,7 @@ export default function AuditForm({ store, template, auditId, existingResponses 
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [responses]);
+  }, [handleAutoSave]);
 
   // Request geo-location on mount
   useEffect(() => {
@@ -169,36 +194,6 @@ export default function AuditForm({ store, template, auditId, existingResponses 
       .map((q) => q.id);
 
     return calculateAuditScore(responseData, criticalQuestionIds);
-  }
-
-  async function handleAutoSave() {
-    if (Object.keys(responses).length === 0) return;
-
-    setIsSaving(true);
-    try {
-      // Save each response
-      for (const [questionId, response] of Object.entries(responses)) {
-        if (response.result) {
-          await fetch('/api/audits/save-response', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              auditId,
-              questionId,
-              result: response.result,
-              notes: response.notes,
-              severity: response.severity,
-            }),
-          });
-        }
-      }
-
-      setLastSaved(new Date());
-    } catch (error) {
-      console.error('Auto-save failed:', error);
-    } finally {
-      setIsSaving(false);
-    }
   }
 
   function handleResponseChange(questionId: string, result: AuditResult) {
@@ -588,6 +583,7 @@ export default function AuditForm({ store, template, auditId, existingResponses 
                                   </div>
                                   <div className="grid grid-cols-3 gap-2">
                                     {response.uploadedPhotoUrls.map((url, idx) => (
+                                      // eslint-disable-next-line @next/next/no-img-element -- dynamic CDN URL from UploadThing, dimensions unknown
                                       <img
                                         key={idx}
                                         src={url}
@@ -680,6 +676,7 @@ export default function AuditForm({ store, template, auditId, existingResponses 
 
           {officerSignature ? (
             <div className="border rounded-lg p-2 bg-gray-50">
+              {/* eslint-disable-next-line @next/next/no-img-element -- base64 data URL from canvas, no static dimensions */}
               <img
                 src={officerSignature}
                 alt="Officer signature"

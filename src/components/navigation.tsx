@@ -12,7 +12,6 @@ import {
   ListTodo,
   Settings,
   LogOut,
-  User,
 } from "lucide-react";
 
 interface NavigationProps {

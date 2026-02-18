@@ -13,7 +13,7 @@ import {
   calculateDueDate,
   type AuditResponseData,
 } from '@/lib/audit-scoring';
-import { ActionSeverity, AuditResult, AuditStatus, ComplianceCategory, Prisma } from '@prisma/client';
+import { ActionSeverity, AuditResult, ComplianceCategory, Prisma } from '@prisma/client';
 
 interface CreateAuditInput {
   storeId: string;

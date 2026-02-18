@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth';
  * Admin endpoint to update demo user passwords to meet new 12-char minimum
  * DELETE this file after running once in production!
  */
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   try {
     const session = await auth();
 

@@ -33,7 +33,7 @@ export const uploadRouter = {
 
       return { userId: session.user.id, uploadedAt: new Date() };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ metadata: _metadata, file }) => {
       console.log("Signature uploaded:", file.url);
       return { url: file.url };
     }),

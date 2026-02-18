@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { ActionSeverity, AuditResult } from '@prisma/client';
 
 /**
  * Admin endpoint to seed the database with audit templates

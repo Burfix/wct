@@ -1,4 +1,4 @@
-import { PrismaClient, StoreType, ComplianceCategory, ActionSeverity, ActionStatus, Prisma } from "@prisma/client";
+import { PrismaClient, StoreType, ComplianceCategory, Prisma } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
