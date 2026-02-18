@@ -210,7 +210,10 @@ async function SelectAuditForm() {
             <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
               <p className="font-semibold text-yellow-900">No audit templates available</p>
               <p className="text-yellow-700 mt-1">
-                Ask an administrator to run the database seed so templates appear here.
+                The database has no active audit templates yet.{' '}
+                <Link href="/demo" className="underline font-medium hover:text-yellow-900">
+                  Visit /demo to auto-seed demo data →
+                </Link>
               </p>
             </div>
           )}
@@ -219,7 +222,10 @@ async function SelectAuditForm() {
             <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
               <p className="font-semibold text-yellow-900">No Food &amp; Beverage stores found</p>
               <p className="text-yellow-700 mt-1">
-                Stores of type &ldquo;FB&rdquo; must exist in the database before you can start an audit.
+                Stores of type &ldquo;FB&rdquo; must exist in the database before you can start an audit.{' '}
+                <Link href="/demo" className="underline font-medium hover:text-yellow-900">
+                  Visit /demo to auto-seed demo data →
+                </Link>
               </p>
             </div>
           )}

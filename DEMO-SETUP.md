@@ -126,6 +126,31 @@ On the landing page, click any tile to log in without a password:
 
 Run these after setup to verify everything works end-to-end.
 
+### 8.0 Demo Quickstart (fastest path)
+
+> **Requires:** app running (`npm run dev` or deployed) and demo data seeded.
+
+1. Open [http://localhost:3000/login](http://localhost:3000/login) and sign in with:
+   - Email: `manager@vawaterfront.co.za`
+   - Password: `Manager2024!`
+
+2. Navigate to [http://localhost:3000/demo](http://localhost:3000/demo).
+   You should see:
+   - ✅ green banner showing you are signed in as ADMIN
+   - Seed status showing template + FB store counts
+
+3. Click **📊 Manager Dashboard (Demo)** → redirects to `/dashboard`.
+   Verify KPI cards render (Total Stores, risk breakdown, etc.).
+
+4. Go back to [/demo](http://localhost:3000/demo) and click **📋 Start Audit (Demo)**.
+   - If no template/stores exist, they are auto-created (idempotent).
+   - You are redirected to `/audits/new?auditId=<id>` — the audit form opens immediately.
+
+> ⚠️ `/demo` is only accessible in `NODE_ENV=development` or when `DEMO_MODE=true` is set.
+> On production Vercel, add `DEMO_MODE=true` to environment variables to enable it.
+
+---
+
 ### 8.1 Health check (DB connectivity)
 
 ```bash
@@ -181,6 +206,7 @@ Expected (after seeding):
 | View `/dashboard` | ✅ | ✅ | 200 |
 | View `/audits/new` | ✅ | ✅ | 200 |
 | View `/settings` | ✅ | ❌ | Redirect to /unauthorized |
+| View `/demo` | ✅ | ✅ | 200 (dev/DEMO_MODE only) |
 
 ---
 
