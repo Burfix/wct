@@ -9,8 +9,8 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/api/auth'];
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  const publicRoutes = ['/', '/api/auth'];
+  const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith('/api/auth'));
 
   if (isPublicRoute) {
     return NextResponse.next();
@@ -21,9 +21,9 @@ export function middleware(request: NextRequest) {
                        request.cookies.get('__Secure-authjs.session-token');
 
   if (!sessionCookie && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+    const homeUrl = new URL('/', request.url);
+    homeUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(homeUrl);
   }
 
   return NextResponse.next();

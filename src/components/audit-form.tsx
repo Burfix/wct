@@ -27,6 +27,7 @@ import {
 import { ActionSeverity, AuditResult } from '@prisma/client';
 import { useUploadThing } from '@/lib/uploadthing';
 import SignaturePad from './signature-pad';
+import TenantAcknowledgement from './tenant-acknowledgement';
 import dynamic from 'next/dynamic';
 
 interface AuditQuestion {
@@ -87,6 +88,7 @@ export default function AuditForm({ store, template, auditId, existingResponses 
   const [tenantName, setTenantName] = useState('');
   const [tenantRole, setTenantRole] = useState('');
   const [tenantContact, setTenantContact] = useState('');
+  const [tenantSignature, setTenantSignature] = useState<string | null>(null);
   const [geoLocation, setGeoLocation] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
   const [geoStatus, setGeoStatus] = useState<'CAPTURED' | 'DENIED' | 'UNAVAILABLE'>('UNAVAILABLE');
   const [showSignaturePad, setShowSignaturePad] = useState(false);
@@ -330,6 +332,7 @@ export default function AuditForm({ store, template, auditId, existingResponses 
           tenantName: tenantAcknowledged ? tenantName : undefined,
           tenantRole: tenantAcknowledged ? tenantRole : undefined,
           tenantContact: tenantAcknowledged ? tenantContact : undefined,
+          tenantSignatureUrl: tenantAcknowledged ? tenantSignature : undefined,
           officerSignatureUrl: officerSignature,
           geoLat: geoLocation?.lat,
           geoLng: geoLocation?.lng,
@@ -622,47 +625,18 @@ export default function AuditForm({ store, template, auditId, existingResponses 
         </div>
 
         {/* Tenant Acknowledgement */}
-        <div className="bg-white rounded-lg border shadow-sm p-4">
-          <div className="flex items-start gap-3">
-            <input
-              type="checkbox"
-              id="tenantAck"
-              checked={tenantAcknowledged}
-              onChange={(e) => setTenantAcknowledged(e.target.checked)}
-              className="mt-1"
-            />
-            <label htmlFor="tenantAck" className="flex-1 text-sm">
-              <div className="font-medium">Tenant/Manager on duty has been informed</div>
-              <div className="text-gray-600">Optional: capture tenant acknowledgement</div>
-            </label>
-          </div>
-
-          {tenantAcknowledged && (
-            <div className="mt-3 space-y-2">
-              <input
-                type="text"
-                value={tenantName}
-                onChange={(e) => setTenantName(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md text-sm"
-                placeholder="Name"
-              />
-              <input
-                type="text"
-                value={tenantRole}
-                onChange={(e) => setTenantRole(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md text-sm"
-                placeholder="Role (e.g., Manager on Duty, Head Chef)"
-              />
-              <input
-                type="text"
-                value={tenantContact}
-                onChange={(e) => setTenantContact(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md text-sm"
-                placeholder="Contact (phone or email)"
-              />
-            </div>
-          )}
-        </div>
+        <TenantAcknowledgement
+          tenantAcknowledged={tenantAcknowledged}
+          tenantName={tenantName}
+          tenantRole={tenantRole}
+          tenantContact={tenantContact}
+          tenantSignature={tenantSignature}
+          onAcknowledgedChange={setTenantAcknowledged}
+          onNameChange={setTenantName}
+          onRoleChange={setTenantRole}
+          onContactChange={setTenantContact}
+          onSignatureChange={setTenantSignature}
+        />
 
         {/* Geo Location */}
         <div className="bg-white rounded-lg border shadow-sm p-4">

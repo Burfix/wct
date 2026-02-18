@@ -53,6 +53,11 @@ export default async function AuditViewPage({
   // @ts-expect-error - Prisma types with deep includes are complex
   const sectionScores = (audit.sectionScores as unknown[]) || [];
 
+  // Count critical failures
+  const criticalFailures = sectionScores.reduce((sum: number, section: any) => 
+    sum + (section.criticalFailures || 0), 0
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto p-6 space-y-6">
@@ -438,7 +443,16 @@ export default async function AuditViewPage({
         )}
 
         {/* Manager Verification */}
-        {canVerify && <AuditVerifyForm auditId={audit.id} />}
+        {canVerify && (
+          <AuditVerifyForm 
+            auditId={audit.id}
+            auditStatus={audit.status}
+            storeName={audit.store?.name}
+            storeCode={audit.store?.storeCode}
+            overallScore={audit.overallScore}
+            criticalFailures={criticalFailures}
+          />
+        )}
 
         {/* Rejection Reason */}
         {audit.status === 'REJECTED' && audit.rejectionReason && (

@@ -35,6 +35,7 @@ interface SubmitAuditInput {
   tenantName?: string;
   tenantRole?: string;
   tenantContact?: string;
+  tenantSignatureUrl?: string;
   officerSignatureUrl?: string;
   geoLat?: number;
   geoLng?: number;
@@ -307,6 +308,7 @@ export async function submitAudit(input: SubmitAuditInput) {
       tenantName: input.tenantName,
       tenantRole: input.tenantRole,
       tenantContact: input.tenantContact,
+      tenantSignatureUrl: input.tenantSignatureUrl,
       officerSignatureUrl: input.officerSignatureUrl,
       officerSignedAt: input.officerSignatureUrl ? new Date() : null,
       geoProofCaptured: !!input.geoLat,
@@ -319,7 +321,7 @@ export async function submitAudit(input: SubmitAuditInput) {
   });
 
   // Create tenant acknowledgement record if provided
-  if (input.tenantAcknowledged) {
+  if (input.tenantAcknowledged && input.tenantName) {
     await prisma.auditAcknowledgement.create({
       data: {
         auditId: input.auditId,
@@ -327,6 +329,7 @@ export async function submitAudit(input: SubmitAuditInput) {
         name: input.tenantName,
         role: input.tenantRole,
         contact: input.tenantContact,
+        signatureUrl: input.tenantSignatureUrl,
       },
     });
   }

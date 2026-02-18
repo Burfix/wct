@@ -89,7 +89,7 @@ export function Navigation({ session }: NavigationProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={() => signOut({ callbackUrl: "/" })}
               title="Sign out"
             >
               <LogOut className="h-4 w-4" />
