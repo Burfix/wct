@@ -28,7 +28,7 @@ export async function getExecutiveRiskRadar() {
       
       -- Restaurant Criticals (RED items in Food & Beverage stores)
       COUNT(DISTINCT CASE 
-        WHEN ci.status = 'RED' AND s.category = 'Food & Beverage' 
+        WHEN ci.status = 'RED' AND s."storeType" = 'FB' 
         THEN ci.id 
       END) as "restaurantCriticals",
       
@@ -57,7 +57,7 @@ export async function getExecutiveRiskRadar() {
       -- Overall risk score for sorting
       (
         COUNT(DISTINCT CASE WHEN s."overallStatus" = 'RED' THEN s.id END) * 100 +
-        COUNT(DISTINCT CASE WHEN ci.status = 'RED' AND s.category = 'Food & Beverage' THEN ci.id END) * 50 +
+        COUNT(DISTINCT CASE WHEN ci.status = 'RED' AND s."storeType" = 'FB' THEN ci.id END) * 50 +
         COUNT(DISTINCT CASE WHEN ci.status = 'RED' AND s."highFootTraffic" = true THEN ci.id END) * 40 +
         COUNT(DISTINCT CASE WHEN ca.severity = 'CRITICAL' AND ca.status IN ('OPEN', 'IN_PROGRESS') AND ca."dueDate" < ${now} THEN ca.id END) * 30 +
         COUNT(DISTINCT CASE WHEN ci."expiryDate" BETWEEN ${now} AND ${next72Hours} AND ci.status IN ('RED', 'ORANGE') THEN ci.id END) * 20
@@ -168,7 +168,7 @@ export async function getZoneDrilldown(zone: string) {
     FROM "ComplianceItem" ci
     INNER JOIN stores s ON s.id = ci."storeId"
     WHERE s.zone = ${zone}
-      AND s.category = 'Food & Beverage'
+      AND s."storeType" = 'FB'
       AND ci.status = 'RED'
       AND s.status = 'active'
     ORDER BY ci."expiryDate" ASC NULLS LAST
@@ -193,7 +193,7 @@ export async function getZoneDrilldown(zone: string) {
       AND s."highFootTraffic" = true
       AND ci.status = 'RED'
       AND s.status = 'active'
-    ORDER BY s."avgFootTraffic" DESC
+    ORDER BY s."highFootTraffic" DESC, s.name ASC
     LIMIT 10
   `;
 
