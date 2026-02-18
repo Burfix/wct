@@ -65,7 +65,7 @@ function randomDate(daysOffset: number, variance: number = 30): Date {
   return baseDate;
 }
 
-async function main() {
+export async function seed() {
   console.log("🌱 Starting seed...");
 
   // Clear existing data
@@ -381,11 +381,5 @@ async function main() {
   console.log("🌱 Seed completed successfully!");
 }
 
-main()
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+// Note: when used as a module, call `seed()` programmatically.
+// For CLI usage, a small runner file `prisma/seed-run.ts` will invoke this.

@@ -10,9 +10,11 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "tsx prisma/seed-run.ts",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "test:db": "tsx test-db-connection.ts",
+    "verify": "./verify-connections.sh"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
