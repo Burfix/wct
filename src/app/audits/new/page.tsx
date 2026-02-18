@@ -85,8 +85,6 @@ export default async function NewAuditPage({
     return <SelectAuditForm />;
   }
 
-  console.log('Creating audit with:', { storeId, templateId });
-
   // Get store
   const store = await prisma.store.findUnique({
     where: { id: storeId },
@@ -128,8 +126,6 @@ export default async function NewAuditPage({
       },
     },
   });
-
-  console.log('Template lookup:', { templateId, found: template?.id, name: template?.name });
 
   if (!template) {
     return (
@@ -195,30 +191,29 @@ async function SelectAuditForm() {
     orderBy: { storeCode: 'asc' },
   });
 
-  console.log('SelectAuditForm - Templates count:', templates.length);
-  console.log('SelectAuditForm - Templates:', JSON.stringify(templates.map(t => ({ id: t.id, name: t.name }))));
-  console.log('SelectAuditForm - Stores count:', stores.length);
-  console.log('SelectAuditForm - First 3 stores:', JSON.stringify(stores.slice(0, 3)));
-
-  if (templates.length === 0) {
-    console.error('NO TEMPLATES FOUND!');
-  }
-  if (stores.length === 0) {
-    console.error('NO STORES FOUND!');
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg border shadow-sm p-6">
           <h1 className="text-2xl font-bold mb-6">Start New Audit</h1>
 
-          {/* Debug info */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
-            <p className="font-semibold text-blue-900">Debug Info:</p>
-            <p className="text-blue-700">Templates: {templates.length}</p>
-            <p className="text-blue-700">Stores: {stores.length}</p>
-          </div>
+          {templates.length === 0 && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+              <p className="font-semibold text-yellow-900">No audit templates available</p>
+              <p className="text-yellow-700 mt-1">
+                Ask an administrator to run the database seed so templates appear here.
+              </p>
+            </div>
+          )}
+
+          {stores.length === 0 && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+              <p className="font-semibold text-yellow-900">No Food &amp; Beverage stores found</p>
+              <p className="text-yellow-700 mt-1">
+                Stores of type &ldquo;FB&rdquo; must exist in the database before you can start an audit.
+              </p>
+            </div>
+          )}
 
           <form method="GET" className="space-y-6">
             <div>
@@ -261,7 +256,8 @@ async function SelectAuditForm() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+              disabled={templates.length === 0 || stores.length === 0}
+              className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Start Audit
             </button>

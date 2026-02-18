@@ -10,7 +10,7 @@ export async function GET(req: Request) {
 
     const actionsMod = await import('../../../dashboard/actions');
     const execMod = await import('../../../dashboard/actions-executive');
-    const riskMod = await import('../../../../src/lib/risk-radar').catch(() => null);
+    const riskMod = await import('@/lib/risk-radar').catch(() => null);
 
     const results: Record<string, any> = {};
 
@@ -45,7 +45,12 @@ export async function GET(req: Request) {
     }
 
     try {
-      results.riskTop = await (await import('../../../dashboard/actions')).getRiskRadarTop3?.(7);
+      const rm = riskMod as any;
+      if (rm?.getRiskRadarTop3) {
+        results.riskTop = await rm.getRiskRadarTop3(7);
+      } else {
+        results.riskTop = null;
+      }
     } catch (e) {
       results.riskTopError = e instanceof Error ? e.message : String(e);
     }
