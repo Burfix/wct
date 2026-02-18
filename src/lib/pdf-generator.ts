@@ -3,8 +3,51 @@
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
+interface SectionScore {
+  sectionName: string;
+  yes: number;
+  no: number;
+  na: number;
+  score: number;
+  criticalFailures: number;
+}
+
+interface PDFAuditResponse {
+  questionId: string;
+  result: string;
+  notes?: string | null;
+  severity?: string | null;
+  photos: unknown[];
+  question: { sectionId: string };
+}
+
+interface AuditForPDF {
+  store: { storeCode: string; name: string };
+  template: {
+    name: string;
+    sections: Array<{
+      id: string;
+      name: string;
+      questions: Array<{ id: string; question: string; critical: boolean }>;
+    }>;
+  };
+  auditDate: Date | string;
+  conductedBy: { name?: string | null; email: string };
+  status: string;
+  overallScore?: number | null;
+  sectionScores?: SectionScore[];
+  responses: PDFAuditResponse[];
+  generalComments?: string | null;
+  acknowledgement?: { acknowledged: boolean; name: string; role: string; contact: string } | null;
+  officerSignatureUrl?: string | null;
+  managerSignatureUrl?: string | null;
+  officerSignedAt?: Date | string | null;
+  managerSignedAt?: Date | string | null;
+  actions: Array<{ title: string; description: string; severity: string; dueDate: Date | string; status: string }>;
+}
+
 interface GeneratePDFOptions {
-  audit: any;
+  audit: AuditForPDF;
   watermark?: string;
 }
 
@@ -94,7 +137,7 @@ export async function generateAuditPDF({
   yPos += 12;
 
   // Overall Score
-  if (audit.overallScore !== null) {
+  if (audit.overallScore != null) {
     checkPageBreak(25);
     pdf.setFillColor(
       audit.overallScore >= 80 ? 220 : audit.overallScore >= 60 ? 255 : 255,
@@ -116,7 +159,7 @@ export async function generateAuditPDF({
   }
 
   // Section Scores
-  const sectionScores = audit.sectionScores as any[];
+  const sectionScores: SectionScore[] = audit.sectionScores ?? [];
   if (sectionScores && Array.isArray(sectionScores)) {
     checkPageBreak(15);
     pdf.setFontSize(14);
@@ -163,7 +206,7 @@ export async function generateAuditPDF({
 
   for (const section of audit.template.sections) {
     const sectionResponses = audit.responses.filter(
-      (r: any) => r.question.sectionId === section.id
+      (r) => r.question.sectionId === section.id
     );
 
     if (sectionResponses.length === 0) continue;
@@ -176,7 +219,7 @@ export async function generateAuditPDF({
 
     for (const question of section.questions) {
       const response = sectionResponses.find(
-        (r: any) => r.questionId === question.id
+        (r) => r.questionId === question.id
       );
 
       if (!response) continue;

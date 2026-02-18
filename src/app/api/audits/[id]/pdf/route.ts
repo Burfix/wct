@@ -135,7 +135,12 @@ export async function GET(
     // =========================================================================
     // SECTION SCORES SUMMARY
     // =========================================================================
-    const sectionScores = (audit.sectionScores as any) || {};
+    type SectionScoreData = Record<string, { score: number; yes: number; no: number; na: number }>;
+    const rawScores = audit.sectionScores;
+    const sectionScores: SectionScoreData =
+      rawScores !== null && typeof rawScores === 'object' && !Array.isArray(rawScores)
+        ? (rawScores as SectionScoreData)
+        : {};
     if (Object.keys(sectionScores).length > 0) {
       doc.fontSize(12).font('Helvetica-Bold').text('Section Scores Summary');
       doc.fontSize(10).font('Helvetica');
@@ -332,7 +337,7 @@ export async function GET(
     });
 
     // Return PDF
-    return new NextResponse(pdfBuffer as any, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="audit-${audit.store.storeCode}-${new Date(audit.auditDate).toISOString().split('T')[0]}.pdf"`,

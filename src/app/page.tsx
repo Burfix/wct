@@ -3,7 +3,6 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 const USERS = [
@@ -60,7 +59,7 @@ export default function Home() {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Authentication error:", err);
       setLoading(false);
       setSelectedUser(null);

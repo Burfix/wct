@@ -1,6 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
+import { StoreType, ComplianceStatus } from "@prisma/client";
 
 export async function getStores(filters?: {
   zone?: string;
@@ -8,7 +10,7 @@ export async function getStores(filters?: {
   status?: string;
   search?: string;
 }) {
-  const where: any = {
+  const where: Prisma.StoreWhereInput = {
     status: "active",
   };
 
@@ -17,11 +19,11 @@ export async function getStores(filters?: {
   }
 
   if (filters?.storeType) {
-    where.storeType = filters.storeType;
+    where.storeType = filters.storeType as StoreType;
   }
 
   if (filters?.status) {
-    where.overallStatus = filters.status;
+    where.overallStatus = filters.status as ComplianceStatus;
   }
 
   if (filters?.search) {

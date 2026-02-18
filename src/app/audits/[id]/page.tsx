@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getAudit } from '../actions';
@@ -44,17 +43,26 @@ export default async function AuditViewPage({
     );
   }
 
-  // @ts-expect-error - Prisma types with deep includes are complex
+  interface SectionScore {
+    sectionId: string;
+    sectionName: string;
+    yes: number;
+    no: number;
+    na: number;
+    score: number;
+    weight: number;
+    criticalFailures: number;
+  }
+
   const isManager = session.user.role === 'ADMIN';
-  // @ts-expect-error - Prisma types with deep includes are complex
   const canVerify = isManager && (audit.status === 'SUBMITTED' || audit.status === 'COMPLETE');
 
   // Calculate section scores from sectionScores JSON
   // @ts-expect-error - Prisma types with deep includes are complex
-  const sectionScores = (audit.sectionScores as unknown[]) || [];
+  const sectionScores = (audit.sectionScores as SectionScore[]) || [];
 
   // Count critical failures
-  const criticalFailures = sectionScores.reduce((sum: number, section: any) => 
+  const criticalFailures = sectionScores.reduce((sum: number, section: SectionScore) => 
     sum + (section.criticalFailures || 0), 0
   );
 
@@ -71,7 +79,7 @@ export default async function AuditViewPage({
                 </h1>
                 <Badge
                   variant={
-                    audit.status === 'PENDING_REVIEW'
+                    audit.status === 'SUBMITTED'
                       ? 'success'
                       : audit.status === 'DRAFT'
                       ? 'error'
@@ -149,7 +157,7 @@ export default async function AuditViewPage({
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {sectionScores.map((section: any) => (
+                {sectionScores.map((section: SectionScore) => (
                   <div key={section.sectionId} className="border-b pb-3 last:border-0">
                     <div className="flex items-center justify-between mb-2">
                       <div>

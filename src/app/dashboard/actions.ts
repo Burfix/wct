@@ -314,7 +314,14 @@ export async function getComplianceTrend(days: number = 30) {
   });
 
   // Group by date and calculate daily metrics
-  const trendData: Record<string, any> = {};
+  interface TrendEntry {
+    date: string;
+    redsCreated: number;
+    redsResolved: number;
+    actionsOpened: number;
+    actionsClosed: number;
+  }
+  const trendData: Record<string, TrendEntry> = {};
 
   activities.forEach((activity) => {
     const date = activity.createdAt.toISOString().split("T")[0];

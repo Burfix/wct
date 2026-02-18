@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { createAudit, getAuditTemplates } from '../actions';
 import { prisma } from '@/lib/db';
 import AuditForm from '@/components/audit-form';
+import type { AuditResult, ActionSeverity } from '@prisma/client';
 
 export default async function NewAuditPage({
   searchParams,
@@ -59,16 +61,23 @@ export default async function NewAuditPage({
     }
 
     // Map existing responses
-    const existingResponses = audit.responses.reduce((acc, r) => {
+    type ResponseShape = {
+      questionId: string;
+      result: AuditResult | null;
+      notes: string;
+      severity: ActionSeverity | null;
+      photos: File[];
+    };
+    const existingResponses = audit.responses.reduce<Record<string, ResponseShape>>((acc, r) => {
       acc[r.questionId] = {
         questionId: r.questionId,
         result: r.result,
         notes: r.notes || '',
         severity: r.severity,
-        photos: [], // Photos already uploaded
+        photos: [],
       };
       return acc;
-    }, {} as any);
+    }, {});
 
     return (
       <AuditForm
@@ -103,9 +112,9 @@ export default async function NewAuditPage({
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <h1 className="text-xl font-bold text-red-900 mb-2">Store Not Found</h1>
             <p className="text-red-700">Store ID: {storeId}</p>
-            <a href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
+            <Link href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
               ← Back to selection
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -134,9 +143,9 @@ export default async function NewAuditPage({
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <h1 className="text-xl font-bold text-red-900 mb-2">Template Not Found</h1>
             <p className="text-red-700">Template ID: {templateId}</p>
-            <a href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
+            <Link href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
               ← Back to selection
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -157,9 +166,9 @@ export default async function NewAuditPage({
             <p className="text-red-700">
               {error instanceof Error ? error.message : 'Unknown error occurred'}
             </p>
-            <a href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
+            <Link href="/audits/new" className="mt-4 inline-block text-blue-600 hover:underline">
               ← Try again
-            </a>
+            </Link>
           </div>
         </div>
       </div>

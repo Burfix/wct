@@ -18,10 +18,10 @@ export async function GET() {
       users: users,
       dbConnected: true,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       dbConnected: false,
     }, { status: 500 });
   }

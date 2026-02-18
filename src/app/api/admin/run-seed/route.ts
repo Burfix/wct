@@ -19,9 +19,9 @@ export async function POST(req: Request) {
     }
 
     // Dynamically import the seed function
-    const seedModule = await import('../../../../../prisma/seed');
-    // `prisma/seed.ts` exports `seed` — use a safe any-cast to avoid TS build error
-    const seed = (seedModule as any).seed ?? (seedModule as any).default;
+    type SeedModule = { seed?: unknown; default?: unknown };
+    const seedModule = await import('../../../../../prisma/seed') as unknown as SeedModule;
+    const seed = seedModule.seed ?? seedModule.default;
 
     if (typeof seed !== 'function') {
       return NextResponse.json({ success: false, error: 'Seed function not found' }, { status: 500 });

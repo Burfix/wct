@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 
     // Import dashboard action dynamically to avoid build issues
     const mod = await import('../../../dashboard/actions');
-    const getDashboardStats = (mod as any).getDashboardStats;
+    const getDashboardStats = mod.getDashboardStats;
     if (typeof getDashboardStats !== 'function') {
       return NextResponse.json({ success: false, error: 'getDashboardStats not found' }, { status: 500 });
     }

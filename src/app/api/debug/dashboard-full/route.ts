@@ -12,41 +12,41 @@ export async function GET(req: Request) {
     const execMod = await import('../../../dashboard/actions-executive');
     const riskMod = await import('@/lib/risk-radar').catch(() => null);
 
-    const results: Record<string, any> = {};
+    const results: Record<string, unknown> = {};
 
     try {
-      results.stats = await (actionsMod as any).getDashboardStats();
+      results.stats = await actionsMod.getDashboardStats();
     } catch (e) {
       results.statsError = e instanceof Error ? e.message : String(e);
     }
 
     try {
-      results.priority = await (actionsMod as any).getPriorityStores(20);
+      results.priority = await actionsMod.getPriorityStores(20);
     } catch (e) {
       results.priorityError = e instanceof Error ? e.message : String(e);
     }
 
     try {
-      results.zones = await (actionsMod as any).getZoneHotspots();
+      results.zones = await actionsMod.getZoneHotspots();
     } catch (e) {
       results.zonesError = e instanceof Error ? e.message : String(e);
     }
 
     try {
-      results.category = await (actionsMod as any).getCategoryBreakdown();
+      results.category = await actionsMod.getCategoryBreakdown();
     } catch (e) {
       results.categoryError = e instanceof Error ? e.message : String(e);
     }
 
     try {
-      results.officer = await (actionsMod as any).getOfficerWorkload();
+      results.officer = await actionsMod.getOfficerWorkload();
     } catch (e) {
       results.officerError = e instanceof Error ? e.message : String(e);
     }
 
     try {
-      const rm = riskMod as any;
-      if (rm?.getRiskRadarTop3) {
+      const rm = riskMod;
+      if (rm && 'getRiskRadarTop3' in rm && typeof rm.getRiskRadarTop3 === 'function') {
         results.riskTop = await rm.getRiskRadarTop3(7);
       } else {
         results.riskTop = null;
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
     }
 
     try {
-      results.execRadar = await (execMod as any).getExecutiveRiskRadar();
+      results.execRadar = await execMod.getExecutiveRiskRadar();
     } catch (e) {
       results.execRadarError = e instanceof Error ? e.message : String(e);
     }

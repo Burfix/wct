@@ -13,7 +13,7 @@ import {
   calculateDueDate,
   type AuditResponseData,
 } from '@/lib/audit-scoring';
-import { ActionSeverity, AuditResult, AuditStatus, ComplianceCategory } from '@prisma/client';
+import { ActionSeverity, AuditResult, AuditStatus, ComplianceCategory, Prisma } from '@prisma/client';
 
 interface CreateAuditInput {
   storeId: string;
@@ -302,7 +302,7 @@ export async function submitAudit(input: SubmitAuditInput) {
     data: {
       status: 'SUBMITTED',
       overallScore: scoreResult.overallScore,
-      sectionScores: JSON.parse(JSON.stringify(scoreResult.sectionScores)) as any,
+      sectionScores: JSON.parse(JSON.stringify(scoreResult.sectionScores)) as Prisma.InputJsonValue,
       generalComments: input.generalComments,
       tenantAcknowledged: input.tenantAcknowledged || false,
       tenantName: input.tenantName,
@@ -335,7 +335,7 @@ export async function submitAudit(input: SubmitAuditInput) {
   }
 
   // Update store metadata
-  const updateData: any = {
+  const updateData: Prisma.StoreUpdateInput = {
     lastAuditDate: new Date(),
   };
 

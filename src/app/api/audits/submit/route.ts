@@ -6,10 +6,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const audit = await submitAudit(body);
     return NextResponse.json({ success: true, audit });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Submit audit error:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 400 }
     );
   }

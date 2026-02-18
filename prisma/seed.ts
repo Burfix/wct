@@ -1,4 +1,4 @@
-import { PrismaClient, StoreType, ComplianceCategory, ActionSeverity, ActionStatus } from "@prisma/client";
+import { PrismaClient, StoreType, ComplianceCategory, ActionSeverity, ActionStatus, Prisma } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -213,7 +213,7 @@ export async function seed() {
 
   // Create 400 Stores
   console.log("🏪 Creating 400 stores...");
-  const stores: any[] = [];
+  const stores: Prisma.StoreUncheckedCreateInput[] = [];
   let storeCounter = 1;
 
   // F&B stores (60)

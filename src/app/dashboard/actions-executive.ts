@@ -249,17 +249,17 @@ export async function getZoneDrilldown(zone: string) {
 
   return {
     zone,
-    restaurantCriticals: restaurantCriticals.map((item: any) => ({
+    restaurantCriticals: restaurantCriticals.map((item) => ({
       ...item,
       expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
     })),
     highFootfallReds,
-    expiringIn72h: expiringIn72h.map((item: any) => ({
+    expiringIn72h: expiringIn72h.map((item) => ({
       ...item,
       expiryDate: new Date(item.expiryDate),
       hoursUntilExpiry: Math.round(Number(item.hoursUntilExpiry)),
     })),
-    overdueCriticalActions: overdueCriticalActions.map((action: any) => ({
+    overdueCriticalActions: overdueCriticalActions.map((action) => ({
       ...action,
       dueDate: new Date(action.dueDate),
     })),
